@@ -1,0 +1,21 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+
+    externalNativeBuild {
+        ndkBuild {
+            path 'jni/Android.mk'
+        }
+    }
+
+    defaultConfig {
+        externalNativeBuild {
+            ndkBuild {
+                // Pass arguments to ndk-build.
+                arguments('B_MAGISK=1', 'B_INIT=1', 'B_BOOT=1', 'B_BXZ=1', 'MAGISK_DEBUG=1')
+            }
+        }
+    }
+}

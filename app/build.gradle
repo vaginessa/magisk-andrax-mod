@@ -1,0 +1,91 @@
+apply plugin: 'com.android.application'
+
+def configProps = new Properties()
+def configPath = project.hasProperty('configPath') ? project.configPath : rootProject.file('config.prop')
+configProps.load(new FileInputStream(configPath))
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+    buildToolsVersion rootProject.ext.buildToolsVersion
+
+    defaultConfig {
+        applicationId "com.topjohnwu.magisk"
+        minSdkVersion 21
+        targetSdkVersion rootProject.ext.compileSdkVersion
+    }
+
+    signingConfigs {
+        config {
+            storeFile rootProject.file('release-key.jks')
+            storePassword configProps['keyStorePass']
+            keyAlias configProps['keyAlias']
+            keyPassword configProps['keyPass']
+        }
+    }
+
+    buildTypes {
+        debug {
+            // If keystore exists, sign the APK with custom signature
+            if (signingConfigs.config.storeFile.exists())
+                signingConfig signingConfigs.config
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signingConfigs.config
+        }
+    }
+
+    flavorDimensions "mode"
+
+    productFlavors {
+        full {
+            versionName configProps['appVersion']
+            versionCode configProps['appVersionCode'] as Integer
+            javaCompileOptions {
+                annotationProcessorOptions {
+                    argument('butterknife.debuggable', 'false')
+                }
+            }
+        }
+        stub {
+            versionCode 1
+            versionName "stub"
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    dexOptions {
+        preDexLibraries true
+        javaMaxHeapSize "2g"
+    }
+    lintOptions {
+        disable 'MissingTranslation'
+    }
+}
+
+dependencies {
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    fullImplementation project(':utils')
+    implementation 'androidx.core:core:1.0.1'
+    fullImplementation 'androidx.appcompat:appcompat:1.0.2'
+    fullImplementation "androidx.preference:preference:${rootProject.ext.androidXVersion}"
+    fullImplementation "androidx.recyclerview:recyclerview:${rootProject.ext.androidXVersion}"
+    fullImplementation "androidx.cardview:cardview:${rootProject.ext.androidXVersion}"
+    fullImplementation "com.google.android.material:material:${rootProject.ext.androidXVersion}"
+    fullImplementation 'com.github.topjohnwu:libsu:2.0.3'
+    fullImplementation 'com.atlassian.commonmark:commonmark:0.11.0'
+    fullImplementation 'org.kamranzafar:jtar:2.3'
+
+    def butterKnifeVersion = '9.0.0-rc1'
+    if (properties.containsKey('android.injected.invoked.from.ide')) {
+        fullImplementation "com.jakewharton:butterknife-reflect:${butterKnifeVersion}"
+    } else {
+        fullImplementation "com.jakewharton:butterknife-runtime:${butterKnifeVersion}"
+        fullAnnotationProcessor "com.jakewharton:butterknife-compiler:${butterKnifeVersion}"
+    }
+}
