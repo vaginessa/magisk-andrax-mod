@@ -1,1 +1,1 @@
-#Moded Magisk Manager to perfect run ANDRAX
+# Moded Magisk Manager to perfect run ANDRAX
